@@ -7,5 +7,8 @@ export async function GET() {
     SUPABASE_SERVICE_ROLE_KEY: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
     NODE_ENV: process.env.NODE_ENV,
   }
-  return NextResponse.json(vars)
+
+  return NextResponse.json(vars, {
+    headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' },
+  })
 }
