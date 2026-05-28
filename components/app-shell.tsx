@@ -30,7 +30,7 @@ export function AppShell({
           showSettings={showSettings}
         />
       )}
-      <main className="mx-auto w-full max-w-lg flex-1 px-4 pb-20 pt-4">
+      <main className="mx-auto w-full max-w-lg md:max-w-4xl lg:max-w-6xl flex-1 px-4 pb-20 md:pb-12 pt-4 md:pt-6">
         {children}
       </main>
       {showNav && <BottomNav />}

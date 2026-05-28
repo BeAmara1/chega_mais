@@ -1,12 +1,15 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { AppShell } from '@/components/app-shell'
 import { EventCard } from '@/components/event-card'
 import { EventFilters } from '@/components/event-filters'
+import { PaginationBar } from '@/components/pagination-bar'
 import type { EventWithAttendees } from '@/lib/types'
+
+const ITEMS_PER_PAGE = 8
 
 interface FeedClientProps {
   initialEvents: EventWithAttendees[]
@@ -17,6 +20,11 @@ export function FeedClient({ initialEvents, userId }: FeedClientProps) {
   const router = useRouter()
   const [events, setEvents] = useState(initialEvents)
   const [searchQuery, setSearchQuery] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery])
 
   const filteredEvents = useMemo(() => {
     let filtered = [...events]
@@ -35,6 +43,12 @@ export function FeedClient({ initialEvents, userId }: FeedClientProps) {
 
     return filtered
   }, [events, searchQuery])
+
+  const totalPages = Math.ceil(filteredEvents.length / ITEMS_PER_PAGE)
+  const paginatedEvents = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE
+    return filteredEvents.slice(start, start + ITEMS_PER_PAGE)
+  }, [filteredEvents, currentPage])
 
   const handleAttend = async (eventId: string) => {
     const supabase = createClient()
@@ -109,18 +123,25 @@ export function FeedClient({ initialEvents, userId }: FeedClientProps) {
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {filteredEvents.map(event => (
-              <EventCard
-                key={event.id}
-                event={event}
-                onAttend={handleAttend}
-                onUnattend={handleUnattend}
-                onLike={handleLike}
-                onUnlike={handleUnlike}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {paginatedEvents.map(event => (
+                <EventCard
+                  key={event.id}
+                  event={event}
+                  onAttend={handleAttend}
+                  onUnattend={handleUnattend}
+                  onLike={handleLike}
+                  onUnlike={handleUnlike}
+                />
+              ))}
+            </div>
+            <PaginationBar
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </>
         )}
       </div>
     </AppShell>

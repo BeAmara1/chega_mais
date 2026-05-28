@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -56,11 +57,18 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
-      <div className="w-full max-w-sm space-y-8">
+    <div className="relative flex min-h-screen flex-col items-center justify-center px-4 overflow-hidden bg-background">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,oklch(0.65_0.22_18/0.06),transparent_50%),radial-gradient(ellipse_at_bottom_left,oklch(0.72_0.2_45/0.04),transparent_50%)]" />
+      <div className="relative w-full max-w-sm space-y-8 rounded-2xl bg-card/80 backdrop-blur-xl border border-border/50 p-8 shadow-2xl">
         <div className="text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary">
-            <span className="text-3xl font-bold text-primary-foreground">C+</span>
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary shadow-[0_0_20px_-5px_var(--primary)]">
+            <Image
+              src="/logo.png"
+              alt="Chega+"
+              width={40}
+              height={40}
+              className="rounded-lg"
+            />
           </div>
           <h1 className="text-2xl font-bold text-foreground">Criar conta</h1>
           <p className="mt-2 text-muted-foreground">
@@ -125,7 +133,7 @@ export default function SignUpPage() {
             <p className="text-sm text-destructive">{error}</p>
           )}
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button type="submit" className="w-full hover:shadow-[0_0_20px_-5px_var(--primary)]" disabled={isLoading}>
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -139,7 +147,7 @@ export default function SignUpPage() {
 
         <div className="text-center text-sm">
           <span className="text-muted-foreground">Já tem uma conta? </span>
-          <Link href="/auth/login" className="font-medium text-primary hover:underline">
+          <Link href="/auth/login" className="font-medium text-primary hover:underline hover:text-primary/80 transition-colors">
             Entrar
           </Link>
         </div>

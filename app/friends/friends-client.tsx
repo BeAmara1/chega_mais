@@ -169,7 +169,7 @@ export function FriendsClient({
             <TabsTrigger value="discover">Descobrir</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="friends" className="mt-4 space-y-3">
+          <TabsContent value="friends" className="mt-4">
             {filteredFriends.length === 0 ? (
               <div className="py-12 text-center">
                 <p className="text-muted-foreground">
@@ -177,7 +177,8 @@ export function FriendsClient({
                 </p>
               </div>
             ) : (
-              filteredFriends.map((friend) => (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {filteredFriends.map((friend) => (
                 <div
                   key={friend.id}
                   className="flex items-center gap-3 rounded-lg bg-card p-3"
@@ -213,8 +214,9 @@ export function FriendsClient({
                     </Button>
                   </div>
                 </div>
-              ))
-            )}
+              ))}
+            </div>
+          )}
           </TabsContent>
 
           <TabsContent value="requests" className="mt-4 space-y-4">
@@ -300,7 +302,7 @@ export function FriendsClient({
             )}
           </TabsContent>
 
-          <TabsContent value="discover" className="mt-4 space-y-3">
+          <TabsContent value="discover" className="mt-4">
             {filteredSuggested.length === 0 ? (
               <div className="py-12 text-center">
                 <p className="text-muted-foreground">
@@ -308,7 +310,8 @@ export function FriendsClient({
                 </p>
               </div>
             ) : (
-              filteredSuggested.map((user) => (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {filteredSuggested.map((user) => (
                 <div
                   key={user.id}
                   className="flex items-center gap-3 rounded-lg bg-card p-3"
@@ -334,8 +337,9 @@ export function FriendsClient({
                     Adicionar
                   </Button>
                 </div>
-              ))
-            )}
+              ))}
+            </div>
+          )}
           </TabsContent>
         </Tabs>
       </div>

@@ -1,12 +1,15 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Search, TrendingUp, Calendar } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { AppShell } from '@/components/app-shell'
 import { EventCard } from '@/components/event-card'
 import { Input } from '@/components/ui/input'
+import { PaginationBar } from '@/components/pagination-bar'
 import type { EventWithAttendees } from '@/lib/types'
+
+const ITEMS_PER_PAGE = 8
 
 interface ExploreClientProps {
   events: EventWithAttendees[]
@@ -16,6 +19,11 @@ interface ExploreClientProps {
 export function ExploreClient({ events: initialEvents, userId }: ExploreClientProps) {
   const [events, setEvents] = useState(initialEvents)
   const [searchQuery, setSearchQuery] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery])
 
   const filteredEvents = useMemo(() => {
     let filtered = [...events]
@@ -49,6 +57,12 @@ export function ExploreClient({ events: initialEvents, userId }: ExploreClientPr
       return eventDate >= now && eventDate <= nextWeek
     })
   }, [events])
+
+  const filteredTotalPages = Math.ceil(filteredEvents.length / ITEMS_PER_PAGE)
+  const paginatedFilteredEvents = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE
+    return filteredEvents.slice(start, start + ITEMS_PER_PAGE)
+  }, [filteredEvents, currentPage])
 
   const handleAttend = async (eventId: string) => {
     const supabase = createClient()
@@ -143,7 +157,7 @@ export function ExploreClient({ events: initialEvents, userId }: ExploreClientPr
                   <TrendingUp className="h-5 w-5 text-primary" />
                   Em alta
                 </h2>
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {featuredEvents.map(event => (
                     <EventCard
                       key={event.id}
@@ -165,8 +179,8 @@ export function ExploreClient({ events: initialEvents, userId }: ExploreClientPr
                   <Calendar className="h-5 w-5 text-primary" />
                   Esta semana
                 </h2>
-                <div className="space-y-4">
-                  {upcomingEvents.slice(0, 3).map(event => (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {upcomingEvents.slice(0, 4).map(event => (
                     <EventCard
                       key={event.id}
                       event={event}
@@ -194,8 +208,9 @@ export function ExploreClient({ events: initialEvents, userId }: ExploreClientPr
                 </p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {filteredEvents.map(event => (
+              <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {paginatedFilteredEvents.map(event => (
                   <EventCard
                     key={event.id}
                     event={event}
@@ -206,6 +221,12 @@ export function ExploreClient({ events: initialEvents, userId }: ExploreClientPr
                   />
                 ))}
               </div>
+              <PaginationBar
+                currentPage={currentPage}
+                totalPages={filteredTotalPages}
+                onPageChange={setCurrentPage}
+              />
+              </>
             )}
           </div>
         )}

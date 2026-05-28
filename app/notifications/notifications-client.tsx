@@ -90,7 +90,7 @@ export function NotificationsClient({
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur-md">
-        <div className="mx-auto flex h-14 max-w-lg items-center gap-3 px-4">
+        <div className="mx-auto flex h-14 md:h-16 w-full max-w-lg md:max-w-4xl lg:max-w-6xl items-center gap-3 px-4">
           <Button variant="ghost" size="icon" asChild>
             <Link href="/feed">
               <ArrowLeft className="h-5 w-5" />
@@ -100,7 +100,7 @@ export function NotificationsClient({
         </div>
       </header>
 
-      <main className="mx-auto max-w-lg px-4 py-4">
+      <main className="mx-auto w-full max-w-lg md:max-w-4xl lg:max-w-6xl px-4 py-4">
         {!hasNotifications ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">

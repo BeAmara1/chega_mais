@@ -75,7 +75,7 @@ export function EventCard({ event, onAttend, onUnattend, onLike, onUnlike }: Eve
   }
 
   return (
-    <article className="overflow-hidden rounded-xl bg-card shadow-sm transition-shadow hover:shadow-md">
+    <article className="group overflow-hidden rounded-xl bg-card shadow-sm transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 hover:ring-1 hover:ring-primary/20 hover:-translate-y-0.5">
       <Link href={`/event/${event.id}`} className="block">
         <div className="relative aspect-[16/9] w-full overflow-hidden">
           {event.image_url ? (
@@ -83,7 +83,7 @@ export function EventCard({ event, onAttend, onUnattend, onLike, onUnlike }: Eve
               src={event.image_url}
               alt={event.title}
               fill
-              className="object-cover transition-transform duration-300 hover:scale-105"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           ) : (
@@ -196,8 +196,10 @@ export function EventCard({ event, onAttend, onUnattend, onLike, onUnlike }: Eve
 
         <Button
           className={cn(
-            'mt-3 w-full',
-            event.is_attending && 'bg-accent text-accent-foreground hover:bg-accent/90'
+            'mt-3 w-full transition-all duration-300',
+            event.is_attending
+              ? 'bg-accent text-accent-foreground hover:bg-accent/90'
+              : 'hover:shadow-[0_0_20px_-5px_var(--primary)]'
           )}
           onClick={handleAttendClick}
         >

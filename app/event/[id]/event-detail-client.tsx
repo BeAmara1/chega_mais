@@ -188,9 +188,9 @@ export function EventDetailClient({
         </Button>
       </div>
 
-      <div className="mx-auto max-w-lg px-4">
+      <div className="mx-auto w-full max-w-lg md:max-w-4xl lg:max-w-6xl px-4">
         {/* Event Info */}
-        <div className="-mt-12 relative space-y-4">
+        <div className="-mt-12 md:-mt-20 relative space-y-4 md:grid md:grid-cols-2 md:gap-8 md:space-y-0">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
               {event.category && (
@@ -279,7 +279,7 @@ export function EventDetailClient({
           </div>
 
           {/* Comments Section */}
-          <div className="space-y-4 pt-4">
+          <div className="space-y-4 pt-8 md:col-span-2">
             <h3 className="text-lg font-semibold text-foreground">
               Comentários ({comments.length})
             </h3>

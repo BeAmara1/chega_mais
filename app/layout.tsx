@@ -3,8 +3,10 @@ import { Analytics } from '@vercel/analytics/next'
 import '@fontsource/inter/400.css'
 import '@fontsource/inter/600.css'
 import '@fontsource/inter/700.css'
+import '@fontsource/gochi-hand'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
+import { GraffitiOverlay } from '@/components/graffiti-overlay'
 
 export const metadata: Metadata = {
   title: 'Chega+ | Descubra Eventos Incríveis',
@@ -31,7 +33,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#e85a3d',
+  themeColor: '#FF4D6D',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -46,7 +48,10 @@ export default function RootLayout({
     <html lang="pt-BR" className="bg-background" suppressHydrationWarning>
       <body className="font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          {children}
+          <div className="relative">
+            {children}
+            <GraffitiOverlay />
+          </div>
         </ThemeProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

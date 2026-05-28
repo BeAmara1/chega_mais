@@ -159,12 +159,17 @@ export function ProfileClient({
     setIsSaving(false)
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR', {
-      day: 'numeric',
-      month: 'short',
-      timeZone: 'America/Sao_Paulo',
-    })
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return 'Data a definir'
+    const date = new Date(dateString)
+    if (!isNaN(date.getTime())) {
+      return date.toLocaleDateString('pt-BR', {
+        day: 'numeric',
+        month: 'short',
+        timeZone: 'America/Sao_Paulo',
+      })
+    }
+    return dateString
   }
 
   return (
@@ -292,8 +297,8 @@ export function ProfileClient({
               </Button>
             </div>
           ) : (
-            <div className="space-y-2">
-              {events.slice(0, 5).map((event) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {events.slice(0, 6).map((event) => (
                 <Link
                   key={event.id}
                   href={`/event/${event.id}`}
@@ -349,7 +354,7 @@ export function ProfileClient({
               </Button>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {likedEvents.map((event) => (
                 <div key={event.id} className="flex items-center gap-3 rounded-lg bg-card p-3">
                   <Link

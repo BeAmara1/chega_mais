@@ -2,23 +2,25 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { 
-  ArrowLeft, 
-  Mail, 
-  Lock, 
-  Trash2, 
-  Bell, 
-  Moon, 
-  Sun, 
+import {
+  Mail,
+  Lock,
+  Trash2,
+  Bell,
+  Moon,
+  Sun,
   LogOut,
   Loader2,
   UserX,
   MessageCircle,
   Users,
-  Calendar
+  Calendar,
+  Settings,
+  Sparkles,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useTheme } from 'next-themes'
+import { usePlusMode } from '@/hooks/use-plus-mode'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -44,86 +46,108 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 
-interface SettingsClientProps {
-  userId: string
-  userEmail: string
-  username: string
-}
-
 interface NotificationPreferences {
   friendEvents: boolean
   friendRequests: boolean
   newMessages: boolean
 }
 
-export function SettingsClient({ userId, userEmail, username }: SettingsClientProps) {
+export function SettingsDialog() {
   const router = useRouter()
+  const [open, setOpen] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
+  const [userEmail, setUserEmail] = useState('')
   const [isLoggingOut, setIsLoggingOut] = useState(false)
-  
-  // Email change state
+
   const [emailDialogOpen, setEmailDialogOpen] = useState(false)
   const [newEmail, setNewEmail] = useState('')
   const [emailLoading, setEmailLoading] = useState(false)
   const [emailError, setEmailError] = useState('')
   const [emailSuccess, setEmailSuccess] = useState(false)
 
-  // Password change state
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false)
-  const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordLoading, setPasswordLoading] = useState(false)
   const [passwordError, setPasswordError] = useState('')
   const [passwordSuccess, setPasswordSuccess] = useState(false)
 
-  // Delete account state
   const [deleteLoading, setDeleteLoading] = useState(false)
+
+  const { isPlusMode, enablePlusMode, disablePlusMode } = usePlusMode()
+
+  const [plusPasswordOpen, setPlusPasswordOpen] = useState(false)
+  const [plusPassword, setPlusPassword] = useState('')
+  const [plusPasswordError, setPlusPasswordError] = useState('')
 
   const { theme, setTheme } = useTheme()
   const isDarkMode = theme === 'dark'
 
-  // Notification preferences
   const [notifications, setNotifications] = useState<NotificationPreferences>({
     friendEvents: true,
     friendRequests: true,
     newMessages: true,
   })
 
-  // Load notification preferences on mount
   useEffect(() => {
-    const savedNotifications = localStorage.getItem(`notifications_${userId}`)
-    if (savedNotifications) {
-      setNotifications(JSON.parse(savedNotifications))
+    if (!open) return
+    const load = async () => {
+      const supabase = createClient()
+      if (!supabase) return
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        setUserId(user.id)
+        setUserEmail(user.email || '')
+        const saved = localStorage.getItem(`notifications_${user.id}`)
+        if (saved) setNotifications(JSON.parse(saved))
+      }
     }
-  }, [userId])
+    load()
+  }, [open])
 
   const handleThemeToggle = () => {
     setTheme(isDarkMode ? 'light' : 'dark')
   }
 
+  const handlePlusToggle = () => {
+    if (isPlusMode) {
+      disablePlusMode()
+    } else {
+      setPlusPassword('')
+      setPlusPasswordError('')
+      setPlusPasswordOpen(true)
+    }
+  }
+
+  const handlePlusPasswordSubmit = () => {
+    if (plusPassword === '1505') {
+      enablePlusMode()
+      setPlusPasswordOpen(false)
+      setPlusPassword('')
+      setPlusPasswordError('')
+    } else {
+      setPlusPasswordError('Senha incorreta')
+    }
+  }
+
   const handleNotificationChange = (key: keyof NotificationPreferences) => {
     const newNotifications = { ...notifications, [key]: !notifications[key] }
     setNotifications(newNotifications)
-    localStorage.setItem(`notifications_${userId}`, JSON.stringify(newNotifications))
+    if (userId) localStorage.setItem(`notifications_${userId}`, JSON.stringify(newNotifications))
   }
 
   const handleEmailChange = async () => {
     if (!newEmail.trim()) return
-    
     setEmailLoading(true)
     setEmailError('')
     setEmailSuccess(false)
-    
     const supabase = createClient()
-    
     if (!supabase) {
-      setEmailError('Serviço temporariamente indisponível')
+      setEmailError('Servico temporariamente indisponivel')
       setEmailLoading(false)
       return
     }
-    
     const { error } = await supabase.auth.updateUser({ email: newEmail })
-    
     if (error) {
       setEmailError(error.message)
     } else {
@@ -134,68 +158,53 @@ export function SettingsClient({ userId, userEmail, username }: SettingsClientPr
         setEmailSuccess(false)
       }, 2000)
     }
-    
     setEmailLoading(false)
   }
 
   const handlePasswordChange = async () => {
     if (!newPassword || !confirmPassword) return
-    
     if (newPassword !== confirmPassword) {
       setPasswordError('As senhas nao coincidem')
       return
     }
-    
     if (newPassword.length < 6) {
       setPasswordError('A senha deve ter pelo menos 6 caracteres')
       return
     }
-    
     setPasswordLoading(true)
     setPasswordError('')
     setPasswordSuccess(false)
-    
     const supabase = createClient()
-    
     if (!supabase) {
-      setPasswordError('Serviço temporariamente indisponível')
+      setPasswordError('Servico temporariamente indisponivel')
       setPasswordLoading(false)
       return
     }
-    
     const { error } = await supabase.auth.updateUser({ password: newPassword })
-    
     if (error) {
       setPasswordError(error.message)
     } else {
       setPasswordSuccess(true)
       setTimeout(() => {
         setPasswordDialogOpen(false)
-        setCurrentPassword('')
         setNewPassword('')
         setConfirmPassword('')
         setPasswordSuccess(false)
       }, 2000)
     }
-    
     setPasswordLoading(false)
   }
 
   const handleDeleteAccount = async () => {
+    if (!userId) return
     setDeleteLoading(true)
     const supabase = createClient()
-    
     if (!supabase) {
       setDeleteLoading(false)
       return
     }
-    
-    // Delete user profile (cascade will handle related data)
     await supabase.from('profiles').delete().eq('id', userId)
-    
-    // Sign out
     await supabase.auth.signOut()
-    
     router.push('/auth/login')
   }
 
@@ -212,25 +221,23 @@ export function SettingsClient({ userId, userEmail, username }: SettingsClientPr
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur-md">
-        <div className="mx-auto flex h-14 max-w-lg items-center gap-3 px-4">
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-lg font-semibold text-foreground">Configuracoes</h1>
-        </div>
-      </header>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="icon">
+          <Settings className="h-5 w-5" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Configuracoes</DialogTitle>
+          <DialogDescription>Gerencie sua conta e preferencias</DialogDescription>
+        </DialogHeader>
 
-      <main className="mx-auto w-full max-w-lg md:max-w-2xl px-4 py-6 pb-24 md:pb-12">
         <div className="space-y-6">
           {/* Account Section */}
           <section className="space-y-3">
             <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Conta</h2>
-            
             <div className="rounded-lg bg-card border border-border overflow-hidden">
-              {/* Email */}
               <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
                 <DialogTrigger asChild>
                   <button className="flex w-full items-center gap-3 p-4 text-left hover:bg-muted transition-colors border-b border-border">
@@ -244,47 +251,24 @@ export function SettingsClient({ userId, userEmail, username }: SettingsClientPr
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Alterar email</DialogTitle>
-                    <DialogDescription>
-                      Um email de confirmacao sera enviado para o novo endereco.
-                    </DialogDescription>
+                    <DialogDescription>Um email de confirmacao sera enviado para o novo endereco.</DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="new-email">Novo email</Label>
-                      <Input
-                        id="new-email"
-                        type="email"
-                        value={newEmail}
-                        onChange={(e) => setNewEmail(e.target.value)}
-                        placeholder="novo@email.com"
-                      />
+                      <Label htmlFor="dialog-new-email">Novo email</Label>
+                      <Input id="dialog-new-email" type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="novo@email.com" />
                     </div>
-                    {emailError && (
-                      <p className="text-sm text-destructive">{emailError}</p>
-                    )}
-                    {emailSuccess && (
-                      <p className="text-sm text-green-600">Email de confirmacao enviado!</p>
-                    )}
+                    {emailError && <p className="text-sm text-destructive">{emailError}</p>}
+                    {emailSuccess && <p className="text-sm text-green-600">Email de confirmacao enviado!</p>}
                   </div>
                   <DialogFooter>
-                    <Button
-                      onClick={handleEmailChange}
-                      disabled={emailLoading || !newEmail.trim()}
-                    >
-                      {emailLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Salvando...
-                        </>
-                      ) : (
-                        'Salvar'
-                      )}
+                    <Button onClick={handleEmailChange} disabled={emailLoading || !newEmail.trim()}>
+                      {emailLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Salvando...</> : 'Salvar'}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
 
-              {/* Password */}
               <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
                 <DialogTrigger asChild>
                   <button className="flex w-full items-center gap-3 p-4 text-left hover:bg-muted transition-colors border-b border-border">
@@ -298,57 +282,28 @@ export function SettingsClient({ userId, userEmail, username }: SettingsClientPr
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Alterar senha</DialogTitle>
-                    <DialogDescription>
-                      Digite sua nova senha abaixo.
-                    </DialogDescription>
+                    <DialogDescription>Digite sua nova senha abaixo.</DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="new-password">Nova senha</Label>
-                      <Input
-                        id="new-password"
-                        type="password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        placeholder="Minimo 6 caracteres"
-                      />
+                      <Label htmlFor="dialog-new-password">Nova senha</Label>
+                      <Input id="dialog-new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Minimo 6 caracteres" />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="confirm-password">Confirmar senha</Label>
-                      <Input
-                        id="confirm-password"
-                        type="password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="Digite novamente"
-                      />
+                      <Label htmlFor="dialog-confirm-password">Confirmar senha</Label>
+                      <Input id="dialog-confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Digite novamente" />
                     </div>
-                    {passwordError && (
-                      <p className="text-sm text-destructive">{passwordError}</p>
-                    )}
-                    {passwordSuccess && (
-                      <p className="text-sm text-green-600">Senha alterada com sucesso!</p>
-                    )}
+                    {passwordError && <p className="text-sm text-destructive">{passwordError}</p>}
+                    {passwordSuccess && <p className="text-sm text-green-600">Senha alterada com sucesso!</p>}
                   </div>
                   <DialogFooter>
-                    <Button
-                      onClick={handlePasswordChange}
-                      disabled={passwordLoading || !newPassword || !confirmPassword}
-                    >
-                      {passwordLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Salvando...
-                        </>
-                      ) : (
-                        'Alterar senha'
-                      )}
+                    <Button onClick={handlePasswordChange} disabled={passwordLoading || !newPassword || !confirmPassword}>
+                      {passwordLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Salvando...</> : 'Alterar senha'}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
 
-              {/* Delete Account */}
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <button className="flex w-full items-center gap-3 p-4 text-left hover:bg-muted transition-colors text-destructive">
@@ -377,19 +332,8 @@ export function SettingsClient({ userId, userEmail, username }: SettingsClientPr
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleDeleteAccount}
-                      disabled={deleteLoading}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    >
-                      {deleteLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Excluindo...
-                        </>
-                      ) : (
-                        'Sim, excluir minha conta'
-                      )}
+                    <AlertDialogAction onClick={handleDeleteAccount} disabled={deleteLoading} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      {deleteLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Excluindo...</> : 'Sim, excluir minha conta'}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
@@ -400,7 +344,6 @@ export function SettingsClient({ userId, userEmail, username }: SettingsClientPr
           {/* Notifications Section */}
           <section className="space-y-3">
             <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Notificacoes</h2>
-            
             <div className="rounded-lg bg-card border border-border overflow-hidden">
               <div className="flex items-center justify-between p-4 border-b border-border">
                 <div className="flex items-center gap-3">
@@ -410,12 +353,8 @@ export function SettingsClient({ userId, userEmail, username }: SettingsClientPr
                     <p className="text-sm text-muted-foreground">Quando um amigo confirmar presenca</p>
                   </div>
                 </div>
-                <Switch
-                  checked={notifications.friendEvents}
-                  onCheckedChange={() => handleNotificationChange('friendEvents')}
-                />
+                <Switch checked={notifications.friendEvents} onCheckedChange={() => handleNotificationChange('friendEvents')} />
               </div>
-
               <div className="flex items-center justify-between p-4 border-b border-border">
                 <div className="flex items-center gap-3">
                   <Users className="h-5 w-5 text-muted-foreground" />
@@ -424,12 +363,8 @@ export function SettingsClient({ userId, userEmail, username }: SettingsClientPr
                     <p className="text-sm text-muted-foreground">Quando alguem quiser ser seu amigo</p>
                   </div>
                 </div>
-                <Switch
-                  checked={notifications.friendRequests}
-                  onCheckedChange={() => handleNotificationChange('friendRequests')}
-                />
+                <Switch checked={notifications.friendRequests} onCheckedChange={() => handleNotificationChange('friendRequests')} />
               </div>
-
               <div className="flex items-center justify-between p-4">
                 <div className="flex items-center gap-3">
                   <MessageCircle className="h-5 w-5 text-muted-foreground" />
@@ -438,10 +373,7 @@ export function SettingsClient({ userId, userEmail, username }: SettingsClientPr
                     <p className="text-sm text-muted-foreground">Quando receber uma mensagem</p>
                   </div>
                 </div>
-                <Switch
-                  checked={notifications.newMessages}
-                  onCheckedChange={() => handleNotificationChange('newMessages')}
-                />
+                <Switch checked={notifications.newMessages} onCheckedChange={() => handleNotificationChange('newMessages')} />
               </div>
             </div>
           </section>
@@ -449,51 +381,75 @@ export function SettingsClient({ userId, userEmail, username }: SettingsClientPr
           {/* Appearance Section */}
           <section className="space-y-3">
             <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Aparencia</h2>
-            
             <div className="rounded-lg bg-card border border-border overflow-hidden">
               <div className="flex items-center justify-between p-4">
                 <div className="flex items-center gap-3">
-                  {isDarkMode ? (
-                    <Moon className="h-5 w-5 text-muted-foreground" />
-                  ) : (
-                    <Sun className="h-5 w-5 text-muted-foreground" />
-                  )}
+                  {isDarkMode ? <Moon className="h-5 w-5 text-muted-foreground" /> : <Sun className="h-5 w-5 text-muted-foreground" />}
                   <div>
                     <p className="font-medium text-foreground">Modo escuro</p>
-                    <p className="text-sm text-muted-foreground">
-                      {isDarkMode ? 'Ativado' : 'Desativado'}
-                    </p>
+                    <p className="text-sm text-muted-foreground">{isDarkMode ? 'Ativado' : 'Desativado'}</p>
                   </div>
                 </div>
-                <Switch
-                  checked={isDarkMode}
-                  onCheckedChange={handleThemeToggle}
-                />
+                <Switch checked={isDarkMode} onCheckedChange={handleThemeToggle} />
               </div>
             </div>
           </section>
 
+          {/* Plus Mode Section */}
+          <section className="space-y-3">
+            <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Plus</h2>
+            <div className="rounded-lg bg-card border border-border overflow-hidden">
+              <div className="flex items-center justify-between p-4">
+                <div className="flex items-center gap-3">
+                  <Sparkles className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="font-medium text-foreground">Modo Plus</p>
+                    <p className="text-sm text-muted-foreground">{isPlusMode ? 'Ativado' : 'Desativado'}</p>
+                  </div>
+                </div>
+                <Switch checked={isPlusMode} onCheckedChange={handlePlusToggle} />
+              </div>
+            </div>
+          </section>
+
+          {/* Password Dialog */}
+          <AlertDialog open={plusPasswordOpen} onOpenChange={(v) => { setPlusPasswordOpen(v); if (!v) setPlusPasswordError('') }}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  Ativar Modo Plus
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  Digite a senha secreta para desbloquear esta funcionalidade.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <div className="space-y-4">
+                <Input
+                  type="password"
+                  value={plusPassword}
+                  onChange={(e) => { setPlusPassword(e.target.value); setPlusPasswordError('') }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handlePlusPasswordSubmit() }}
+                  placeholder="Digite a senha"
+                  autoFocus
+                />
+                {plusPasswordError && <p className="text-sm text-destructive">{plusPasswordError}</p>}
+              </div>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={handlePlusPasswordSubmit}>
+                  Ativar
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
           {/* Logout Button */}
-          <Button
-            variant="outline"
-            className="w-full text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
-            onClick={handleLogout}
-            disabled={isLoggingOut}
-          >
-            {isLoggingOut ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saindo...
-              </>
-            ) : (
-              <>
-                <LogOut className="mr-2 h-4 w-4" />
-                Sair da conta
-              </>
-            )}
+          <Button variant="outline" className="w-full text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive" onClick={handleLogout} disabled={isLoggingOut}>
+            {isLoggingOut ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saindo...</> : <><LogOut className="mr-2 h-4 w-4" /> Sair da conta</>}
           </Button>
         </div>
-      </main>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }
