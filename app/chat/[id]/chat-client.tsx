@@ -82,7 +82,9 @@ export function ChatClient({ otherUser, initialMessages, userId }: ChatClientPro
       content: newMessage.trim(),
     })
 
-    if (!error) {
+    if (error) {
+      console.error('Erro ao enviar mensagem:', error)
+    } else {
       setNewMessage('')
     }
 

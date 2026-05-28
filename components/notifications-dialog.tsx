@@ -49,16 +49,16 @@ export function NotificationsDialog() {
       const [requestsRes, messagesCount, eventsRes] = await Promise.all([
         supabase
           .from('friendships')
-          .select('id, created_at, requester:profiles!friendships_requester_id_fkey(id, username, avatar_url)')
-          .eq('receiver_id', user.id)
+          .select('id, created_at, requester:user_id(id, username, avatar_url)')
+          .eq('friend_id', user.id)
           .eq('status', 'pending'),
         supabase
           .from('messages')
           .select('id', { count: 'exact', head: true })
           .eq('receiver_id', user.id)
-          .eq('is_read', false),
+          .is('read_at', null),
         supabase
-          .from('event_participants')
+          .from('event_attendees')
           .select('event:events(id, title, date, location, image_url)')
           .eq('user_id', user.id)
           .gte('event.date', new Date().toISOString())
@@ -109,7 +109,11 @@ export function NotificationsDialog() {
       .from('friendships')
       .update({ status: 'accepted' })
       .eq('id', friendshipId)
-    if (!error) setPendingRequests(pendingRequests.filter(r => r.id !== friendshipId))
+    if (error) {
+      console.error('Erro ao aceitar solicitação:', error)
+    } else {
+      setPendingRequests(pendingRequests.filter(r => r.id !== friendshipId))
+    }
   }
 
   const handleReject = async (friendshipId: string) => {
@@ -118,7 +122,11 @@ export function NotificationsDialog() {
       .from('friendships')
       .delete()
       .eq('id', friendshipId)
-    if (!error) setPendingRequests(pendingRequests.filter(r => r.id !== friendshipId))
+    if (error) {
+      console.error('Erro ao rejeitar solicitação:', error)
+    } else {
+      setPendingRequests(pendingRequests.filter(r => r.id !== friendshipId))
+    }
   }
 
   const formatTimeAgo = (dateString: string) => {

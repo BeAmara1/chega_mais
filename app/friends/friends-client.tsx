@@ -58,7 +58,9 @@ export function FriendsClient({
       .select('id')
       .single()
 
-    if (!error && data) {
+    if (error) {
+      console.error('Erro ao enviar solicitação:', error)
+    } else if (data) {
       const user = suggested.find(s => s.id === profileId)
       if (user) {
         setSuggested(suggested.filter(s => s.id !== profileId))
@@ -76,7 +78,9 @@ export function FriendsClient({
       .delete()
       .eq('id', friendshipId)
 
-    if (!error) {
+    if (error) {
+      console.error('Erro ao cancelar solicitação:', error)
+    } else {
       const user = pendingSent.find(p => p.friendship_id === friendshipId)
       setPendingSent(pendingSent.filter(p => p.friendship_id !== friendshipId))
       if (user) {
@@ -94,7 +98,9 @@ export function FriendsClient({
       .update({ status: 'accepted' })
       .eq('id', friendshipId)
 
-    if (!error) {
+    if (error) {
+      console.error('Erro ao aceitar solicitação:', error)
+    } else {
       const user = pendingReceived.find(p => p.friendship_id === friendshipId)
       if (user) {
         setPendingReceived(pendingReceived.filter(p => p.friendship_id !== friendshipId))
@@ -112,7 +118,9 @@ export function FriendsClient({
       .delete()
       .eq('id', friendshipId)
 
-    if (!error) {
+    if (error) {
+      console.error('Erro ao rejeitar solicitação:', error)
+    } else {
       setPendingReceived(pendingReceived.filter(p => p.friendship_id !== friendshipId))
     }
   }
@@ -126,7 +134,9 @@ export function FriendsClient({
       .delete()
       .eq('id', friendshipId)
 
-    if (!error) {
+    if (error) {
+      console.error('Erro ao remover amigo:', error)
+    } else {
       const user = friends.find(f => f.friendship_id === friendshipId)
       setFriends(friends.filter(f => f.friendship_id !== friendshipId))
       if (user) {
