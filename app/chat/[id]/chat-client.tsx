@@ -72,7 +72,6 @@ export function ChatClient({ otherUser, initialMessages, userId }: ChatClientPro
     const content = newMessage.trim()
     if (!content || isSending) return
 
-    // Optimistic: show message immediately
     const tempId = `temp-${Date.now()}`
     const optimisticMessage: Message = {
       id: tempId,
@@ -88,18 +87,21 @@ export function ChatClient({ otherUser, initialMessages, userId }: ChatClientPro
     setNewMessage('')
     setIsSending(true)
 
-    const supabase = createClient()
-
-    const { error } = await supabase
-      .from('messages')
-      .insert({
-        sender_id: userId,
-        receiver_id: otherUser.id,
-        content,
+    try {
+      const res = await fetch('/api/messages/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ receiver_id: otherUser.id, content }),
       })
 
-    if (error) {
-      console.error('Erro ao enviar mensagem:', error)
+      if (!res.ok) {
+        const err = await res.json()
+        console.error('Erro ao enviar mensagem:', err.error)
+        setMessages((prev) => prev.filter(m => m.id !== tempId))
+        setNewMessage(content)
+      }
+    } catch (err) {
+      console.error('Erro ao enviar mensagem:', err)
       setMessages((prev) => prev.filter(m => m.id !== tempId))
       setNewMessage(content)
     }
