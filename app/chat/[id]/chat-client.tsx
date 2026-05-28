@@ -90,24 +90,18 @@ export function ChatClient({ otherUser, initialMessages, userId }: ChatClientPro
 
     const supabase = createClient()
 
-    const { error, data } = await supabase
+    const { error } = await supabase
       .from('messages')
       .insert({
         sender_id: userId,
         receiver_id: otherUser.id,
         content,
       })
-      .select('id')
-      .single()
 
     if (error) {
       console.error('Erro ao enviar mensagem:', error)
       setMessages((prev) => prev.filter(m => m.id !== tempId))
       setNewMessage(content)
-    } else if (data) {
-      setMessages((prev) =>
-        prev.map(m => m.id === tempId ? { ...m, id: (data as any).id } : m)
-      )
     }
 
     setIsSending(false)
