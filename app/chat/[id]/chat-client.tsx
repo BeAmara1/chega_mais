@@ -36,8 +36,9 @@ export function ChatClient({ otherUser, initialMessages, userId }: ChatClientPro
     const supabase = createClient()
     if (!supabase) return
 
+    const channelId = `messages-${userId}-${otherUser.id}`
     const channel = supabase
-      .channel('messages')
+      .channel(channelId)
       .on(
         'postgres_changes',
         {
@@ -48,7 +49,8 @@ export function ChatClient({ otherUser, initialMessages, userId }: ChatClientPro
         },
         (payload) => {
           const newMsg = payload.new as Message
-          setMessages((prev) => [...prev, newMsg])
+          // Deduplicate: only add if not already in list (avoids duplicate with optimistic)
+          setMessages((prev) => prev.some(m => m.id === newMsg.id) ? prev : [...prev, newMsg])
 
           // Mark as read if received
           if (newMsg.sender_id === otherUser.id) {
@@ -67,25 +69,45 @@ export function ChatClient({ otherUser, initialMessages, userId }: ChatClientPro
   }, [userId, otherUser.id])
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || isSending) return
+    const content = newMessage.trim()
+    if (!content || isSending) return
 
-    setIsSending(true)
-    const supabase = createClient()
-    if (!supabase) {
-      setIsSending(false)
-      return
-    }
-
-    const { error } = await supabase.from('messages').insert({
+    // Optimistic: show message immediately
+    const tempId = `temp-${Date.now()}`
+    const optimisticMessage: Message = {
+      id: tempId,
       sender_id: userId,
       receiver_id: otherUser.id,
-      content: newMessage.trim(),
-    })
+      group_id: null,
+      content,
+      read_at: null,
+      created_at: new Date().toISOString(),
+    }
+
+    setMessages((prev) => [...prev, optimisticMessage])
+    setNewMessage('')
+    setIsSending(true)
+
+    const supabase = createClient()
+
+    const { error, data } = await supabase
+      .from('messages')
+      .insert({
+        sender_id: userId,
+        receiver_id: otherUser.id,
+        content,
+      })
+      .select('id')
+      .single()
 
     if (error) {
       console.error('Erro ao enviar mensagem:', error)
-    } else {
-      setNewMessage('')
+      setMessages((prev) => prev.filter(m => m.id !== tempId))
+      setNewMessage(content)
+    } else if (data) {
+      setMessages((prev) =>
+        prev.map(m => m.id === tempId ? { ...m, id: (data as any).id } : m)
+      )
     }
 
     setIsSending(false)
