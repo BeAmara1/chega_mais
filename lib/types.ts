@@ -4,6 +4,32 @@ export interface Profile {
   avatar_url: string | null
   bio: string | null
   created_at: string
+  is_premium?: boolean
+}
+
+export interface MatchInteraction {
+  id: string
+  user_id: string
+  target_id: string
+  action: 'like' | 'pass'
+  created_at: string
+}
+
+export interface Match {
+  id: string
+  user1_id: string
+  user2_id: string
+  created_at: string
+  user1?: Profile
+  user2?: Profile
+}
+
+export interface MatchProfile {
+  id: string
+  username: string
+  avatar_url: string | null
+  bio: string | null
+  common_events: number
 }
 
 export interface Event {
@@ -69,16 +95,31 @@ export interface Message {
 export interface ChatGroup {
   id: string
   name: string
+  description: string | null
+  type: 'private' | 'event'
+  event_id: string | null
   created_by: string
   created_at: string
+  avatar_url: string | null
 }
 
 export interface ChatGroupMember {
   id: string
   group_id: string
   user_id: string
+  role: 'admin' | 'member'
   joined_at: string
   profile?: Profile
+}
+
+export interface GroupMessage {
+  id: string
+  group_id: string
+  sender_id: string
+  content: string
+  created_at: string
+  read_by: string[]
+  sender?: Profile
 }
 
 export interface Conversation {

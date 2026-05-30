@@ -4,7 +4,7 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Heart, Settings, LogOut, Calendar, Users, MapPin, Loader2, Camera } from 'lucide-react'
+import { Heart, Settings, LogOut, Calendar, Users, MapPin, Loader2, Camera, Sparkles } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { AppShell } from '@/components/app-shell'
 import { Button } from '@/components/ui/button'
@@ -30,6 +30,7 @@ interface ProfileClientProps {
   friendsCount: number
   eventsCount: number
   userEmail: string
+  isPremium?: boolean
 }
 
 export function ProfileClient({
@@ -39,6 +40,7 @@ export function ProfileClient({
   friendsCount,
   eventsCount,
   userEmail,
+  isPremium = false,
 }: ProfileClientProps) {
   const router = useRouter()
   const [isEditOpen, setIsEditOpen] = useState(false)
@@ -210,8 +212,14 @@ export function ProfileClient({
             />
           </div>
 
-          <h2 className="mt-4 text-xl font-bold text-foreground">
+          <h2 className="mt-4 text-xl font-bold text-foreground flex items-center gap-2">
             @{profile?.username || 'usuario'}
+            {isPremium && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-[#FFD166] px-2 py-0.5 text-xs font-bold text-[#7A3800]">
+                <Sparkles className="h-3 w-3" />
+                PREMIUM
+              </span>
+            )}
           </h2>
           {profile?.bio && (
             <p className="mt-1 text-sm text-muted-foreground max-w-xs">

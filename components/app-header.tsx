@@ -3,11 +3,12 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Search, Users, MessageCircle, User } from 'lucide-react'
+import { Home, Search, Users, MessageCircle, User, Heart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { SettingsDialog } from '@/components/settings-dialog'
 import { NotificationsDialog } from '@/components/notifications-dialog'
+import { ChatDialog } from '@/components/chat-dialog'
 
 interface AppHeaderProps {
   title?: string
@@ -17,9 +18,8 @@ interface AppHeaderProps {
 
 const desktopNavItems = [
   { href: '/feed', icon: Home, label: 'Inicio' },
-  { href: '/explore', icon: Search, label: 'Explorar' },
   { href: '/friends', icon: Users, label: 'Amigos' },
-  { href: '/chat', icon: MessageCircle, label: 'Chat' },
+  { href: '/match', icon: Heart, label: 'Match' },
   { href: '/profile', icon: User, label: 'Perfil' },
 ]
 
@@ -64,6 +64,7 @@ export function AppHeader({
               </Link>
             )
           })}
+          <ChatDialog />
         </nav>
 
         <div className="flex items-center gap-1">

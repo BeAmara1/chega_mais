@@ -59,6 +59,7 @@ export function SettingsDialog() {
   const [userEmail, setUserEmail] = useState('')
   const [isLoggingOut, setIsLoggingOut] = useState(false)
 
+  const [isPremium, setIsPremium] = useState(false)
   const [emailDialogOpen, setEmailDialogOpen] = useState(false)
   const [newEmail, setNewEmail] = useState('')
   const [emailLoading, setEmailLoading] = useState(false)
@@ -98,6 +99,12 @@ export function SettingsDialog() {
       if (user) {
         setUserId(user.id)
         setUserEmail(user.email || '')
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_premium')
+          .eq('id', user.id)
+          .single()
+        if (profile?.is_premium) setIsPremium(true)
         const saved = localStorage.getItem(`notifications_${user.id}`)
         if (saved) setNotifications(JSON.parse(saved))
       }
@@ -338,6 +345,40 @@ export function SettingsDialog() {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
+            </div>
+          </section>
+
+          {/* Premium Section */}
+          <section className="space-y-3">
+            <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Assinatura</h2>
+            <div className="rounded-lg bg-card border border-border overflow-hidden">
+              {isPremium ? (
+                <div className="flex items-center justify-between p-4">
+                  <div className="flex items-center gap-3">
+                    <Sparkles className="h-5 w-5 text-[#FFD166]" />
+                    <div>
+                      <p className="font-medium text-foreground">
+                        <span className="inline-flex items-center gap-1 rounded bg-[#FFD166]/20 px-1.5 py-0.5 text-xs font-bold text-[#7A3800] mr-1">
+                          PREMIUM
+                        </span>
+                        Acesso ao Chega+ Match
+                      </p>
+                      <p className="text-sm text-muted-foreground">Sua assinatura esta ativa</p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => { setOpen(false); window.location.href = '/match/upgrade' }}
+                  className="flex w-full items-center gap-3 p-4 text-left hover:bg-muted transition-colors"
+                >
+                  <Sparkles className="h-5 w-5 text-muted-foreground" />
+                  <div className="flex-1">
+                    <p className="font-medium text-foreground">Torne-se Premium</p>
+                    <p className="text-sm text-muted-foreground">Desbloqueie o Chega+ Match</p>
+                  </div>
+                </button>
+              )}
             </div>
           </section>
 

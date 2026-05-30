@@ -75,6 +75,7 @@ export default async function ProfilePage() {
       friendsCount={friendsCount || 0}
       eventsCount={eventsCount || 0}
       userEmail={user.email || ''}
+      isPremium={profile?.is_premium ?? false}
     />
   )
 }

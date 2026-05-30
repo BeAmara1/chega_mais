@@ -92,10 +92,56 @@ export default async function ChatPage() {
 
   const friends = friendProfiles || []
 
+  // Get user's groups
+  const { data: groupIds } = await supabase
+    .from('group_members')
+    .select('group_id')
+    .eq('user_id', user.id)
+
+  const userGroupIds = (groupIds || []).map(g => g.group_id)
+
+  let groupsWithLastMessage: any[] = []
+  if (userGroupIds.length > 0) {
+    const { data: userGroups } = await supabase
+      .from('groups')
+      .select('*')
+      .in('id', userGroupIds)
+
+    // Get last message for each group and unread count
+    const groupsData = await Promise.all((userGroups || []).map(async (g) => {
+      const { data: lastMsg } = await supabase
+        .from('group_messages')
+        .select('*, sender:profiles(id, username, avatar_url)')
+        .eq('group_id', g.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      const unreadCount = 0
+      return { ...g, lastMessage: lastMsg?.[0] || null, unreadCount }
+    }))
+
+    // Get member counts
+    const { data: memberCounts } = await supabase
+      .from('group_members')
+      .select('group_id')
+      .in('group_id', userGroupIds)
+
+    const countMap = new Map<string, number>()
+    memberCounts?.forEach(m => {
+      countMap.set(m.group_id, (countMap.get(m.group_id) || 0) + 1)
+    })
+
+    groupsWithLastMessage = groupsData.map(g => ({
+      ...g,
+      memberCount: countMap.get(g.id) || 0,
+    }))
+  }
+
   return (
     <ChatListClient
       conversations={conversations}
       friends={friends}
+      initialGroups={groupsWithLastMessage}
       userId={user.id}
     />
   )

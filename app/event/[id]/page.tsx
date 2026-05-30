@@ -65,6 +65,23 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     .eq('id', user.id)
     .single()
 
+  // Get event groups
+  const { data: eventGroups } = await supabase
+    .from('groups')
+    .select('*')
+    .eq('event_id', id)
+
+  let isInEventGroup = false
+  if (eventGroups && eventGroups.length > 0) {
+    const { data: myMembership } = await supabase
+      .from('group_members')
+      .select('id')
+      .eq('group_id', eventGroups[0].id)
+      .eq('user_id', user.id)
+      .single()
+    isInEventGroup = !!myMembership
+  }
+
   const eventWithDetails = {
     ...event,
     is_attending: !!attendance,
@@ -82,6 +99,8 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
       }))}
       userId={user.id}
       userProfile={userProfile}
+      eventGroup={eventGroups?.[0] || null}
+      isInEventGroup={isInEventGroup}
     />
   )
 }

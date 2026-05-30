@@ -6,8 +6,8 @@ export default function AuthErrorPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm space-y-8 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
-          <AlertCircle className="h-8 w-8 text-destructive" />
+        <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-lg bg-destructive/10">
+          <AlertCircle className="h-5 w-5 text-destructive" />
         </div>
 
         <div className="space-y-2">

@@ -7,6 +7,7 @@ import { AppShell } from '@/components/app-shell'
 import { EventCard } from '@/components/event-card'
 import { EventFilters } from '@/components/event-filters'
 import { PaginationBar } from '@/components/pagination-bar'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import type { EventWithAttendees } from '@/lib/types'
 
 const ITEMS_PER_PAGE = 8
@@ -21,10 +22,11 @@ export function FeedClient({ initialEvents, userId }: FeedClientProps) {
   const [events, setEvents] = useState(initialEvents)
   const [searchQuery, setSearchQuery] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
+  const [tab, setTab] = useState('explorar')
 
   useEffect(() => {
     setCurrentPage(1)
-  }, [searchQuery])
+  }, [searchQuery, tab])
 
   const filteredEvents = useMemo(() => {
     let filtered = [...events]
@@ -39,10 +41,14 @@ export function FeedClient({ initialEvents, userId }: FeedClientProps) {
       )
     }
 
+    if (tab === 'amigos') {
+      filtered = filtered.filter(event => event.friends_attending.length > 0)
+    }
+
     filtered.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
     return filtered
-  }, [events, searchQuery])
+  }, [events, searchQuery, tab])
 
   const totalPages = Math.ceil(filteredEvents.length / ITEMS_PER_PAGE)
   const paginatedEvents = useMemo(() => {
@@ -106,43 +112,73 @@ export function FeedClient({ initialEvents, userId }: FeedClientProps) {
       .eq('user_id', userId)
   }
 
+  const renderEvents = (eventList: EventWithAttendees[]) => (
+    <>
+      {eventList.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <p className="text-lg font-medium text-foreground">
+            {tab === 'amigos' && events.length > 0
+              ? 'Nenhum evento com amigos ainda'
+              : events.length === 0
+                ? 'Nenhum evento disponivel ainda'
+                : 'Nenhum evento encontrado'}
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {tab === 'amigos' && events.length > 0
+              ? 'Quando seus amigos confirmarem presenca em eventos, eles aparecerao aqui'
+              : events.length === 0
+                ? 'Novos eventos serao adicionados em breve'
+                : 'Tente ajustar os filtros ou buscar por outros termos'}
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {eventList.map(event => (
+              <EventCard
+                key={event.id}
+                event={event}
+                onAttend={handleAttend}
+                onUnattend={handleUnattend}
+                onLike={handleLike}
+                onUnlike={handleUnlike}
+              />
+            ))}
+          </div>
+          <PaginationBar
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        </>
+      )}
+    </>
+  )
+
   return (
     <AppShell>
       <div className="space-y-6">
         <EventFilters onSearch={setSearchQuery} />
 
-        {filteredEvents.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <p className="text-lg font-medium text-foreground">
-              {events.length === 0 ? 'Nenhum evento disponivel ainda' : 'Nenhum evento encontrado'}
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {events.length === 0 
-                ? 'Novos eventos serao adicionados em breve'
-                : 'Tente ajustar os filtros ou buscar por outros termos'}
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {paginatedEvents.map(event => (
-                <EventCard
-                  key={event.id}
-                  event={event}
-                  onAttend={handleAttend}
-                  onUnattend={handleUnattend}
-                  onLike={handleLike}
-                  onUnlike={handleUnlike}
-                />
-              ))}
-            </div>
-            <PaginationBar
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-            />
-          </>
-        )}
+        <Tabs value={tab} onValueChange={v => setTab(v)}>
+          <TabsList>
+            <TabsTrigger value="explorar">Explorar</TabsTrigger>
+            <TabsTrigger value="amigos">
+              Amigos
+              {events.some(e => e.friends_attending.length > 0) && (
+                <span className="ml-1.5 rounded-full bg-primary/20 px-1.5 py-0.5 text-[10px] text-primary">
+                  {events.reduce((acc, e) => acc + (e.friends_attending.length > 0 ? 1 : 0), 0)}
+                </span>
+              )}
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="explorar" className="mt-4">
+            {renderEvents(paginatedEvents)}
+          </TabsContent>
+          <TabsContent value="amigos" className="mt-4">
+            {renderEvents(paginatedEvents)}
+          </TabsContent>
+        </Tabs>
       </div>
     </AppShell>
   )

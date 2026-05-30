@@ -13,6 +13,7 @@ import {
   ExternalLink,
   Share2,
   Send,
+  MessageCircle,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -28,6 +29,8 @@ interface EventDetailClientProps {
   comments: (EventComment & { profile?: { id: string; username: string; avatar_url: string | null } })[]
   userId: string
   userProfile: Profile | null
+  eventGroup: { id: string; name: string; type: string } | null
+  isInEventGroup: boolean
 }
 
 export function EventDetailClient({
@@ -36,6 +39,8 @@ export function EventDetailClient({
   comments: initialComments,
   userId,
   userProfile,
+  eventGroup,
+  isInEventGroup: initialIsInGroup,
 }: EventDetailClientProps) {
   const router = useRouter()
   const [event, setEvent] = useState(initialEvent)
@@ -241,12 +246,14 @@ export function EventDetailClient({
             {attendees.length > 0 && (
               <div className="flex -space-x-2">
                 {attendees.slice(0, 8).map((attendee) => (
-                  <Avatar key={attendee.id} className="h-10 w-10 border-2 border-card">
-                    <AvatarImage src={attendee.avatar_url || undefined} />
-                    <AvatarFallback>
-                      {attendee.username.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+                  <Link key={attendee.id} href={`/profile/${attendee.id}`}>
+                    <Avatar className="h-10 w-10 border-2 border-card hover:opacity-80 transition-opacity">
+                      <AvatarImage src={attendee.avatar_url || undefined} />
+                      <AvatarFallback>
+                        {attendee.username.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Link>
                 ))}
                 {attendees.length > 8 && (
                   <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-card bg-muted text-xs font-medium">
@@ -275,6 +282,64 @@ export function EventDetailClient({
                   Comprar
                 </a>
               </Button>
+            )}
+          </div>
+
+          {/* Event Group Section */}
+          <div className="space-y-3 rounded-lg bg-card p-4">
+            <h3 className="font-semibold text-foreground">Grupo do Evento</h3>
+            {eventGroup ? (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                    <MessageCircle className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground">{eventGroup.name}</p>
+                    <p className="text-xs text-muted-foreground">Grupo público</p>
+                  </div>
+                </div>
+                {initialIsInGroup ? (
+                  <Button asChild>
+                    <Link href={`/chat/groups/${eventGroup.id}`}>Abrir Grupo</Link>
+                  </Button>
+                ) : (
+                  <Button onClick={async () => {
+                    const supabase = createClient()
+                    const { error } = await supabase
+                      .from('group_members')
+                      .insert({ group_id: eventGroup.id, user_id: userId, role: 'member' })
+                    if (!error) router.push(`/chat/groups/${eventGroup.id}`)
+                  }}>
+                    Entrar no Grupo
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">Nenhum grupo para este evento ainda</p>
+                <Button size="sm" onClick={async () => {
+                  const supabase = createClient()
+                  const { data: group } = await supabase
+                    .from('groups')
+                    .insert({
+                      name: `Grupo - ${event.title}`,
+                      type: 'event',
+                      event_id: event.id,
+                      created_by: userId,
+                    })
+                    .select('id')
+                    .single()
+                  if (group) {
+                    await supabase
+                      .from('group_members')
+                      .insert({ group_id: group.id, user_id: userId, role: 'admin' })
+                    router.push(`/chat/groups/${group.id}`)
+                  }
+                }}>
+                  Criar Grupo
+                </Button>
+              </div>
             )}
           </div>
 
@@ -329,17 +394,19 @@ export function EventDetailClient({
               {comments.map((comment) => (
                 <div key={comment.id} className="rounded-lg bg-card p-4">
                   <div className="flex items-start gap-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={comment.profile?.avatar_url || undefined} />
-                      <AvatarFallback>
-                        {comment.profile?.username.charAt(0).toUpperCase() || '?'}
-                      </AvatarFallback>
-                    </Avatar>
+                    <Link href={`/profile/${comment.user_id}`}>
+                      <Avatar className="h-10 w-10 hover:opacity-80 transition-opacity">
+                        <AvatarImage src={comment.profile?.avatar_url || undefined} />
+                        <AvatarFallback>
+                          {comment.profile?.username.charAt(0).toUpperCase() || '?'}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Link>
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-foreground">
+                        <Link href={`/profile/${comment.user_id}`} className="font-medium text-foreground hover:underline">
                           {comment.profile?.username || 'Usuário'}
-                        </span>
+                        </Link>
                         {comment.rating && (
                           <div className="flex gap-0.5">
                             {[1, 2, 3, 4, 5].map((star) => (
