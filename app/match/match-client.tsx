@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useCallback, useRef } from 'react'
-import { X, Heart, Sparkles } from 'lucide-react'
+import { useState, useCallback, useRef, useEffect } from 'react'
+import Link from 'next/link'
+import { X, Heart, Sparkles, ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { MatchCard } from '@/components/match-card'
 import { MatchOverlay } from '@/components/match-overlay'
@@ -35,22 +36,31 @@ export function MatchClient({ userId, myAvatar, myName, initialProfiles, initial
   const [modalProfile, setModalProfile] = useState<MatchProfile | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
 
+  const allSeenIds = useRef(new Set<string>())
+
+  useEffect(() => {
+    initialProfiles.forEach(p => allSeenIds.current.add(p.id))
+    initialEventProfiles.forEach(p => allSeenIds.current.add(p.id))
+  }, [initialProfiles, initialEventProfiles])
+
   const currentProfiles = filter === 'all' ? profiles : eventProfiles
   const currentProfile = currentProfiles[currentIndex]
 
   const fetchMore = useCallback(async () => {
     if (!supabase) return
     setLoading(true)
-    const interactedIds = currentProfiles.slice(0, currentIndex + 1).map(p => p.id)
+    const seen = Array.from(allSeenIds.current)
     if (filter === 'all') {
-      const more = await getAvailableProfiles(supabase, userId, interactedIds)
+      const more = await getAvailableProfiles(supabase, userId, [], seen)
+      more.forEach(p => allSeenIds.current.add(p.id))
       setProfiles(prev => [...prev, ...more])
     } else {
-      const more = await getAvailableProfilesAtEvents(supabase, userId, interactedIds)
+      const more = await getAvailableProfilesAtEvents(supabase, userId, [], seen)
+      more.forEach(p => allSeenIds.current.add(p.id))
       setEventProfiles(prev => [...prev, ...more])
     }
     setLoading(false)
-  }, [supabase, userId, filter, currentProfiles, currentIndex])
+  }, [supabase, userId, filter])
 
   const handleSwipe = useCallback(async (direction: 'left' | 'right') => {
     if (!supabase || !currentProfile) return
@@ -91,12 +101,17 @@ export function MatchClient({ userId, myAvatar, myName, initialProfiles, initial
   return (
     <div className="fixed inset-0 flex flex-col bg-background">
       <header className="flex items-center justify-between px-4 py-3 border-b border-border">
-        <div className="flex items-center gap-2">
-          <span className="text-lg font-bold text-foreground">Chega+ Match</span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-[#FFD166] px-2 py-0.5 text-xs font-bold text-[#7A3800]">
-            <Sparkles className="h-3 w-3" />
-            PREMIUM
-          </span>
+        <div className="flex items-center gap-3">
+          <Link href="/feed" className="text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-bold text-foreground">Chega+ Match</span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-[#FFD166] px-2 py-0.5 text-xs font-bold text-[#7A3800]">
+              <Sparkles className="h-3 w-3" />
+              PREMIUM
+            </span>
+          </div>
         </div>
         <MatchFilter value={filter} onChange={handleFilterChange} />
       </header>

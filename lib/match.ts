@@ -20,13 +20,15 @@ export async function getMyEventIds(supabase: SupabaseClient, userId: string): P
 export async function getAvailableProfiles(
   supabase: SupabaseClient,
   userId: string,
-  interactedIds: string[]
+  interactedIds: string[],
+  seenIds: string[] = []
 ): Promise<MatchProfile[]> {
-  const excluded = [userId, ...interactedIds]
+  const excluded = [userId, ...interactedIds, ...seenIds]
 
   const { data: profiles } = await supabase
     .from('profiles')
     .select('id, username, avatar_url, bio')
+    .eq('is_premium', true)
     .limit(30)
 
   if (!profiles) return []
@@ -47,8 +49,10 @@ export async function getAvailableProfiles(
 export async function getAvailableProfilesAtEvents(
   supabase: SupabaseClient,
   userId: string,
-  interactedIds: string[]
+  interactedIds: string[],
+  seenIds: string[] = []
 ): Promise<MatchProfile[]> {
+  const excluded = [...interactedIds, ...seenIds]
   const myEvents = await getMyEventIds(supabase, userId)
   if (myEvents.length === 0) return []
 
@@ -59,12 +63,13 @@ export async function getAvailableProfilesAtEvents(
     .neq('user_id', userId)
 
   const rawIds = [...new Set(attendees?.map(a => a.user_id) ?? [])]
-  const availableIds = rawIds.filter(id => !interactedIds.includes(id))
+  const availableIds = rawIds.filter(id => !excluded.includes(id))
   if (availableIds.length === 0) return []
 
   const { data: profiles } = await supabase
     .from('profiles')
     .select('id, username, avatar_url, bio')
+    .eq('is_premium', true)
     .in('id', availableIds)
 
   if (!profiles) return []
