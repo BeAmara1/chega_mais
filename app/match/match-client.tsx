@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useCallback, useRef, useEffect } from 'react'
-import Link from 'next/link'
-import { X, Heart, Sparkles, ArrowLeft } from 'lucide-react'
+import { X, Heart, Sparkles } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { AppShell } from '@/components/app-shell'
 import { MatchCard } from '@/components/match-card'
 import { MatchOverlay } from '@/components/match-overlay'
 import { MatchFilter } from '@/components/match-filter'
@@ -99,12 +99,9 @@ export function MatchClient({ userId, myAvatar, myName, initialProfiles, initial
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-background">
-      <header className="flex items-center justify-between px-4 py-3 border-b border-border">
-        <div className="flex items-center gap-3">
-          <Link href="/feed" className="text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
+    <AppShell title="Chega+ Match" showNotifications showSettings>
+      <div className="flex h-full flex-col">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <span className="text-lg font-bold text-foreground">Chega+ Match</span>
             <span className="inline-flex items-center gap-1 rounded-full bg-[#FFD166] px-2 py-0.5 text-xs font-bold text-[#7A3800]">
@@ -112,46 +109,46 @@ export function MatchClient({ userId, myAvatar, myName, initialProfiles, initial
               PREMIUM
             </span>
           </div>
+          <MatchFilter value={filter} onChange={handleFilterChange} />
         </div>
-        <MatchFilter value={filter} onChange={handleFilterChange} />
-      </header>
 
-      <div className="flex-1 flex items-center justify-center p-4">
-        {currentProfile ? (
-          <div className="relative w-full max-w-sm h-[500px] sm:h-[580px]">
-            <MatchCard
-              key={currentProfile.id}
-              profile={currentProfile}
-              onSwipe={handleSwipe}
-              onTap={handleTapProfile}
-            />
-          </div>
-        ) : loading ? (
-          <p className="text-muted-foreground">Carregando...</p>
-        ) : (
-          <div className="text-center space-y-3">
-            <p className="text-lg text-muted-foreground">Nenhum perfil por enquanto</p>
-            <p className="text-sm text-muted-foreground">Volte mais tarde para ver novos perfis</p>
+        <div className="flex-1 flex items-center justify-center min-h-0">
+          {currentProfile ? (
+            <div className="relative w-full max-w-sm h-[55vh] min-h-[380px]">
+              <MatchCard
+                key={currentProfile.id}
+                profile={currentProfile}
+                onSwipe={handleSwipe}
+                onTap={handleTapProfile}
+              />
+            </div>
+          ) : loading ? (
+            <p className="text-muted-foreground">Carregando...</p>
+          ) : (
+            <div className="text-center space-y-3">
+              <p className="text-lg text-muted-foreground">Nenhum perfil por enquanto</p>
+              <p className="text-sm text-muted-foreground">Volte mais tarde para ver novos perfis</p>
+            </div>
+          )}
+        </div>
+
+        {currentProfile && (
+          <div className="flex items-center justify-center gap-6 pt-4 pb-2">
+            <button
+              onClick={() => handleSwipe('left')}
+              className="flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
+            >
+              <X className="h-7 w-7" />
+            </button>
+            <button
+              onClick={() => handleSwipe('right')}
+              className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-500/10 text-brand-500 hover:bg-brand-500/20 transition-colors"
+            >
+              <Heart className="h-7 w-7 fill-brand-500" />
+            </button>
           </div>
         )}
       </div>
-
-      {currentProfile && (
-        <div className="flex items-center justify-center gap-6 pb-8">
-          <button
-            onClick={() => handleSwipe('left')}
-            className="flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
-          >
-            <X className="h-7 w-7" />
-          </button>
-          <button
-            onClick={() => handleSwipe('right')}
-            className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-500/10 text-brand-500 hover:bg-brand-500/20 transition-colors"
-          >
-            <Heart className="h-7 w-7 fill-brand-500" />
-          </button>
-        </div>
-      )}
 
       {matchOverlay && (
         <MatchOverlay
@@ -169,6 +166,6 @@ export function MatchClient({ userId, myAvatar, myName, initialProfiles, initial
         open={modalOpen}
         onOpenChange={setModalOpen}
       />
-    </div>
+    </AppShell>
   )
 }
