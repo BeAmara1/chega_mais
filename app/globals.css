@@ -3,7 +3,50 @@
 
 @custom-variant dark (&:is(.dark *));
 
-:root, .dark {
+:root {
+  --background: #F5F5F7;
+  --foreground: #0D0D0D;
+  --card: #FFFFFF;
+  --card-foreground: #0D0D0D;
+  --popover: #FFFFFF;
+  --popover-foreground: #0D0D0D;
+  --primary: #FF4D6D;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F0F0F5;
+  --secondary-foreground: #606080;
+  --muted: #F0F0F5;
+  --muted-foreground: #606080;
+  --accent: #FF8C42;
+  --accent-foreground: #FFFFFF;
+  --destructive: #E6284A;
+  --destructive-foreground: #FFFFFF;
+  --border: #E0E0EA;
+  --input: #F0F0F5;
+  --ring: #FF4D6D;
+  --radius: 0.75rem;
+  --chart-1: #FF4D6D;
+  --chart-2: #FF8C42;
+  --chart-3: #8B5CF6;
+  --chart-4: #FFD166;
+  --chart-5: #FF7090;
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #0D0D0D;
+  --sidebar-primary: #FF4D6D;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #F0F0F5;
+  --sidebar-accent-foreground: #606080;
+  --sidebar-border: #E0E0EA;
+  --sidebar-ring: #FF4D6D;
+  --bg-hover: #EFEFEF;
+  --bg-input: #F0F0F5;
+  --border-color: #E0E0EA;
+  --text-muted: #606080;
+  --text-subtle: #9090A8;
+  --brand-subtle: #FF4D6D15;
+  --accent-subtle: #FF8C4210;
+}
+
+.dark {
   --background: #0D0D0D;
   --foreground: #FFFFFF;
   --card: #1A1A2E;
@@ -37,6 +80,13 @@
   --sidebar-accent-foreground: #A0A0B8;
   --sidebar-border: #2E2E50;
   --sidebar-ring: #FF4D6D;
+  --bg-hover: #252545;
+  --bg-input: #252545;
+  --border-color: #2E2E50;
+  --text-muted: #A0A0B8;
+  --text-subtle: #606080;
+  --brand-subtle: #FF4D6D22;
+  --accent-subtle: #FF8C4220;
 }
 
 @theme inline {
@@ -78,6 +128,13 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-bg-hover: var(--bg-hover);
+  --color-bg-input: var(--bg-input);
+  --color-border-color: var(--border-color);
+  --color-text-muted: var(--text-muted);
+  --color-text-subtle: var(--text-subtle);
+  --color-brand-subtle: var(--brand-subtle);
+  --color-accent-subtle: var(--accent-subtle);
   --color-brand-50: #FF4D6D22;
   --color-brand-400: #FF7090;
   --color-brand-500: #FF4D6D;
@@ -90,8 +147,6 @@
   --color-dark-800: #252545;
   --color-dark-900: #1A1A2E;
   --color-dark-950: #0D0D0D;
-  --color-muted-text: #A0A0B8;
-  --color-subtle: #606080;
 }
 
 @layer base {
@@ -102,6 +157,16 @@
     @apply bg-background text-foreground;
     font-family: 'Inter', sans-serif;
   }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.8s ease forwards;
+  opacity: 0;
 }
 
 @keyframes glow {

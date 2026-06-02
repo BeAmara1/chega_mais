@@ -19,6 +19,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { ThemeToggle } from '@/components/theme-toggle'
 import { useTheme } from 'next-themes'
 import { usePlusMode } from '@/hooks/use-plus-mode'
 import { Button } from '@/components/ui/button'
@@ -81,7 +82,7 @@ export function SettingsDialog() {
   const [plusPassword, setPlusPassword] = useState('')
   const [plusPasswordError, setPlusPasswordError] = useState('')
 
-  const { theme, setTheme } = useTheme()
+  const { theme } = useTheme()
   const isDarkMode = theme === 'dark'
 
   const [notifications, setNotifications] = useState<NotificationPreferences>({
@@ -111,10 +112,6 @@ export function SettingsDialog() {
     }
     load()
   }, [open])
-
-  const handleThemeToggle = () => {
-    setTheme(isDarkMode ? 'light' : 'dark')
-  }
 
   const handlePlusToggle = () => {
     if (isPlusMode) {
@@ -427,11 +424,11 @@ export function SettingsDialog() {
                 <div className="flex items-center gap-3">
                   {isDarkMode ? <Moon className="h-5 w-5 text-muted-foreground" /> : <Sun className="h-5 w-5 text-muted-foreground" />}
                   <div>
-                    <p className="font-medium text-foreground">Modo escuro</p>
-                    <p className="text-sm text-muted-foreground">{isDarkMode ? 'Ativado' : 'Desativado'}</p>
+                    <p className="font-medium text-foreground">Tema</p>
+                    <p className="text-sm text-muted-foreground">{isDarkMode ? 'Escuro' : 'Claro'}</p>
                   </div>
                 </div>
-                <Switch checked={isDarkMode} onCheckedChange={handleThemeToggle} />
+                <ThemeToggle />
               </div>
             </div>
           </section>

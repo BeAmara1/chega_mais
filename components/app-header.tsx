@@ -7,6 +7,7 @@ import { Home, Search, Users, MessageCircle, User, Heart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { SettingsDialog } from '@/components/settings-dialog'
+import { ThemeToggle } from '@/components/theme-toggle'
 import { NotificationsDialog } from '@/components/notifications-dialog'
 import { ChatDialog } from '@/components/chat-dialog'
 
@@ -68,6 +69,7 @@ export function AppHeader({
         </nav>
 
         <div className="flex items-center gap-1">
+          <ThemeToggle />
           {showNotifications && <NotificationsDialog />}
           {showSettings && <SettingsDialog />}
         </div>
