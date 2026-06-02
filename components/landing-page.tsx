@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { BackgroundMusic } from '@/components/background-music'
 
 export function LandingPage() {
   return (
@@ -68,6 +69,7 @@ export function LandingPage() {
           <p className="text-sm" style={{ color: '#666' }}>&copy; 2026 Chega+ — Todos os direitos reservados.</p>
         </footer>
       </main>
+      <BackgroundMusic />
     </div>
   )
 }
