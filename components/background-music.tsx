@@ -1,53 +1,52 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 export function BackgroundMusic() {
-  const audioRef = useRef<HTMLAudioElement | null>(null)
-  const [interacted, setInteracted] = useState(false)
+  const [started, setStarted] = useState(false)
   const [playing, setPlaying] = useState(false)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
 
-  useEffect(() => {
+  const start = useCallback(() => {
+    if (started) return
+    setStarted(true)
+
     const el = new Audio('/musica-landing.mp3')
     el.loop = true
     el.volume = 0
     audioRef.current = el
-
-    const start = () => {
-      if (interacted) return
-      setInteracted(true)
-      el.play().catch(() => {})
-
+    el.play().then(() => {
+      setPlaying(true)
       let vol = 0
       const fade = setInterval(() => {
         vol = Math.min(vol + 0.04, 1)
         el.volume = vol
         if (vol >= 1) clearInterval(fade)
       }, 100)
-    }
+    }).catch(() => {})
+  }, [started])
 
-    const events = ['scroll', 'click', 'touchstart', 'keydown']
-    events.forEach((e) => window.addEventListener(e, start, { once: false }))
-
+  useEffect(() => {
+    const events = ['scroll', 'click', 'touchstart', 'keydown'] as const
+    const handler = () => { if (!started) start() }
+    events.forEach((e) => window.addEventListener(e, handler, { once: false }))
     return () => {
-      el.pause()
-      el.src = ''
-      events.forEach((e) => window.removeEventListener(e, start))
+      events.forEach((e) => window.removeEventListener(e, handler))
+      audioRef.current?.pause()
     }
-  }, [interacted])
+  }, [start, started])
 
   const toggle = () => {
+    if (!started) { start(); return }
     const el = audioRef.current
     if (!el) return
     if (playing) {
       el.pause()
+      setPlaying(false)
     } else {
-      el.play().catch(() => {})
+      el.play().then(() => setPlaying(true)).catch(() => {})
     }
-    setPlaying(!playing)
   }
-
-  if (!interacted) return null
 
   return (
     <button
