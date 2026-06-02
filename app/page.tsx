@@ -1,30 +1,9 @@
-export const dynamic = 'force-dynamic'
-
 export default function HomePage() {
   return (
-    <div className="w-full min-h-screen" style={{ background: '#0F0F0F', color: '#fff', fontFamily: 'sans-serif' }}>
-      <div
-        className="absolute inset-0 w-full h-full object-cover"
-        style={{
-          backgroundImage: 'url(https://images.pexels.com/photos/2735037/pexels-photo-2735037.jpeg?auto=compress&cs=tinysrgb&w=1920)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          filter: 'brightness(0.4)',
-        }}
-      />
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen text-center px-6">
-        <h1 className="text-7xl font-black mb-4" style={{ color: '#FF4D6D' }}>Chega+</h1>
-        <p className="text-xl max-w-xl" style={{ color: '#f0f0f0' }}>
-          LANDING_PAGE_ACTIVE
-        </p>
-        <a
-          href="/auth/login"
-          className="mt-8 px-8 py-4 rounded-full text-lg font-bold inline-block hover:scale-105 transition-transform"
-          style={{ background: '#FF4D6D', color: '#fff', textDecoration: 'none' }}
-        >
-          Comece Já
-        </a>
-      </div>
+    <div style={{ background: '#0F0F0F', color: '#fff', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: 'sans-serif', textAlign: 'center', padding: 24 }}>
+      <h1 style={{ fontSize: 72, fontWeight: 900, margin: 0, color: '#FF4D6D' }}>Chega+</h1>
+      <p style={{ fontSize: 20, maxWidth: 576 }}>LANDING_PAGE_ACTIVE</p>
+      <a href="/auth/login" style={{ marginTop: 32, padding: '16px 32px', borderRadius: 9999, fontSize: 18, fontWeight: 700, background: '#FF4D6D', color: '#fff', textDecoration: 'none', display: 'inline-block' }}>Comece Já</a>
     </div>
   )
 }
