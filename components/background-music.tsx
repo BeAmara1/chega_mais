@@ -3,44 +3,64 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 export function BackgroundMusic() {
-  const [started, setStarted] = useState(false)
   const [playing, setPlaying] = useState(false)
   const [volume, setVolume] = useState(0.5)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const startedRef = useRef(false)
+  const targetVolRef = useRef(0.5)
+  const fadeRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const start = useCallback(() => {
+  const fadeIn = useCallback(() => {
+    const el = audioRef.current
+    if (!el) return
+    if (fadeRef.current) clearInterval(fadeRef.current)
+    el.volume = 0
+    const target = targetVolRef.current
+    fadeRef.current = setInterval(() => {
+      if (!el) return
+      const next = Math.min(el.volume + 0.04, target)
+      el.volume = next
+      if (next >= target && fadeRef.current) {
+        clearInterval(fadeRef.current)
+        fadeRef.current = null
+      }
+    }, 100)
+  }, [])
+
+  const createAndPlay = useCallback(() => {
     if (startedRef.current) return
     startedRef.current = true
-    setStarted(true)
 
     const el = new Audio('/musica-landing.mp3')
     el.loop = true
     el.volume = 0
     audioRef.current = el
+    targetVolRef.current = 0.5
+
     el.play().then(() => {
       setPlaying(true)
-      let vol = 0
-      const fade = setInterval(() => {
-        vol = Math.min(vol + 0.04, 0.5)
-        el.volume = vol
-        if (vol >= 0.5) clearInterval(fade)
-      }, 100)
+      fadeIn()
     }).catch((err) => {
       console.error('Audio play failed:', err)
     })
-  }, [])
+  }, [fadeIn])
 
   useEffect(() => {
+    const handler = () => createAndPlay()
+    const events = ['click', 'touchstart', 'keydown'] as const
+    events.forEach((e) => document.addEventListener(e, handler, { once: true }))
+
     return () => {
+      events.forEach((e) => document.removeEventListener(e, handler))
+      if (fadeRef.current) clearInterval(fadeRef.current)
       audioRef.current?.pause()
       audioRef.current = null
     }
-  }, [])
+  }, [createAndPlay])
 
   const toggle = () => {
     if (!startedRef.current) {
-      start()
+      createAndPlay()
       return
     }
     const el = audioRef.current
@@ -58,7 +78,10 @@ export function BackgroundMusic() {
   const handleVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = parseFloat(e.target.value)
     setVolume(v)
-    if (audioRef.current) audioRef.current.volume = v
+    targetVolRef.current = v
+    if (audioRef.current && fadeRef.current === null) {
+      audioRef.current.volume = v
+    }
   }
 
   return (
