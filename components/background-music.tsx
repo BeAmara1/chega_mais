@@ -9,6 +9,7 @@ export function BackgroundMusic() {
   const startedRef = useRef(false)
   const targetVolRef = useRef(0.5)
   const fadeRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const domRef = useRef<HTMLAudioElement | null>(null)
 
   const fadeIn = useCallback(() => {
     const el = audioRef.current
@@ -27,15 +28,16 @@ export function BackgroundMusic() {
     }, 100)
   }, [])
 
-  const createAndPlay = useCallback(() => {
+  const start = useCallback(() => {
     if (startedRef.current) return
     startedRef.current = true
 
-    const el = new Audio('/musica-landing.mp3')
-    el.loop = true
-    el.volume = 0
+    const el = domRef.current
+    if (!el) return
+
     audioRef.current = el
     targetVolRef.current = 0.5
+    el.volume = 0
 
     el.play().then(() => {
       setPlaying(true)
@@ -46,21 +48,23 @@ export function BackgroundMusic() {
   }, [fadeIn])
 
   useEffect(() => {
-    const handler = () => createAndPlay()
+    const handler = () => start()
     const events = ['click', 'touchstart', 'keydown'] as const
     events.forEach((e) => document.addEventListener(e, handler, { once: true }))
 
     return () => {
       events.forEach((e) => document.removeEventListener(e, handler))
       if (fadeRef.current) clearInterval(fadeRef.current)
-      audioRef.current?.pause()
-      audioRef.current = null
+      if (domRef.current) {
+        domRef.current.pause()
+        domRef.current.src = ''
+      }
     }
-  }, [createAndPlay])
+  }, [start])
 
   const toggle = () => {
     if (!startedRef.current) {
-      createAndPlay()
+      start()
       return
     }
     const el = audioRef.current
@@ -86,6 +90,7 @@ export function BackgroundMusic() {
 
   return (
     <div className="fixed bottom-24 right-4 z-50 flex flex-col items-center gap-1">
+      <audio ref={domRef} src="/musica-landing.mp3" loop preload="auto" />
       {playing && (
         <div className="flex items-center gap-1 px-1 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20">
           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white/60 shrink-0">
