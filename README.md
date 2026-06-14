@@ -100,4 +100,4 @@ O deploy é automático via Vercel. Toda vez que a branch `main` recebe um push,
 
 ## Licença
 
-Projeto acadêmico — FGV / Ciência de Dados.
+Projeto acadêmico — FGV / Comunicação Digital.
