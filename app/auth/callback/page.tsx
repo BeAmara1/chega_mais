@@ -18,10 +18,15 @@ function CallbackContent() {
     }
 
     const supabase = createClient()
-    supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+    supabase.auth.exchangeCodeForSession(code).then(async ({ error }) => {
       if (error) {
         console.error('Auth callback error:', error)
-        router.push('/auth/error')
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session) {
+          window.location.href = next
+        } else {
+          router.push('/auth/error')
+        }
       } else {
         window.location.href = next
       }
