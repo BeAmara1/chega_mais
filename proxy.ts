@@ -3,5 +3,7 @@ import { updateSession } from '@/lib/supabase/proxy'
 export default updateSession
 
 export const config = {
-  matcher: [],
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
 }
