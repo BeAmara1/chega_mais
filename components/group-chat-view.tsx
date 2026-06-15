@@ -80,7 +80,7 @@ export function GroupChatView({ groupId, groupName, userId, onBack, onSettings }
 
     const ably = getAblyClient()
     const channelName = getGroupChannel(groupId)
-    const channel = ably.channels.get(channelName)
+    const channel = ably?.channels.get(channelName)
     const handleMsg = (msg: any) => {
       const m = msg.data as GroupMessage
       setMessages(prev => prev.some(p => p.id === m.id) ? prev : [...prev, m])
@@ -99,13 +99,13 @@ export function GroupChatView({ groupId, groupName, userId, onBack, onSettings }
         }, 3000))
       }
     }
-    channel.subscribe('message', handleMsg)
-    channel.subscribe('typing', handleTyping)
+    channel?.subscribe('message', handleMsg)
+    channel?.subscribe('typing', handleTyping)
 
     return () => {
       clearInterval(interval)
-      channel.unsubscribe('message', handleMsg)
-      channel.unsubscribe('typing', handleTyping)
+      channel?.unsubscribe('message', handleMsg)
+      channel?.unsubscribe('typing', handleTyping)
       typingTimeouts.current.forEach(t => clearTimeout(t))
     }
   }, [groupId, userId])
@@ -113,7 +113,7 @@ export function GroupChatView({ groupId, groupName, userId, onBack, onSettings }
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewMessage(e.target.value)
     const ably = getAblyClient()
-    ably.channels.get(getGroupChannel(groupId)).publish('typing', { userId, username: 'Você' })
+    ably?.channels.get(getGroupChannel(groupId)).publish('typing', { userId, username: 'Você' })
   }
 
   const handleSend = async () => {
@@ -137,10 +137,12 @@ export function GroupChatView({ groupId, groupName, userId, onBack, onSettings }
     } else {
       setMessages(prev => prev.map(m => m.id === tempId ? { ...m, id: data.id } : m))
       const ably = getAblyClient()
-      ably.channels.get(getGroupChannel(groupId)).publish('message', {
-        id: data.id, group_id: groupId, sender_id: userId, content: content.trim(),
-        read_by: [userId], created_at: new Date().toISOString(),
-      })
+      if (ably) {
+        ably.channels.get(getGroupChannel(groupId)).publish('message', {
+          id: data.id, group_id: groupId, sender_id: userId, content: content.trim(),
+          read_by: [userId], created_at: new Date().toISOString(),
+        })
+      }
     }
     setIsSending(false)
   }

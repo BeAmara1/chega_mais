@@ -79,6 +79,8 @@ export function GroupChatClient({ group, initialMessages, members: initialMember
   // Ably subscription
   useEffect(() => {
     const ably = getAblyClient()
+    if (!ably) return
+
     const channelName = getGroupChannel(group.id)
     const channel = ably.channels.get(channelName)
 
@@ -137,16 +139,18 @@ export function GroupChatClient({ group, initialMessages, members: initialMember
       setMessages((prev) => prev.map(m => m.id === tempId ? { ...m, id: data.id } : m))
 
       const ably = getAblyClient()
-      const channel = ably.channels.get(getGroupChannel(group.id))
-      channel.publish('message', {
-        id: data.id,
-        group_id: group.id,
-        sender_id: userId,
-        content: content.trim(),
-        read_by: [userId],
-        created_at: new Date().toISOString(),
-      sender: senderProfile ? { ...senderProfile } : undefined,
-      })
+      if (ably) {
+        const channel = ably.channels.get(getGroupChannel(group.id))
+        channel.publish('message', {
+          id: data.id,
+          group_id: group.id,
+          sender_id: userId,
+          content: content.trim(),
+          read_by: [userId],
+          created_at: new Date().toISOString(),
+          sender: senderProfile ? { ...senderProfile } : undefined,
+        })
+      }
     }
 
     setIsSending(false)

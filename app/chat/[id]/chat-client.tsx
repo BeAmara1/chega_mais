@@ -75,7 +75,7 @@ export function ChatClient({ otherUser, initialMessages, userId }: ChatClientPro
 
     const ably = getAblyClient()
     const channelName = getChatChannel(userId, otherUser.id)
-    const channel = ably.channels.get(channelName)
+    const channel = ably?.channels.get(channelName)
 
     const handleMessage = (msg: any) => {
       const newMsg = msg.data as Message
@@ -95,13 +95,13 @@ export function ChatClient({ otherUser, initialMessages, userId }: ChatClientPro
       }
     }
 
-    channel.subscribe('message', handleMessage)
-    channel.subscribe('typing', handleTyping)
+    channel?.subscribe('message', handleMessage)
+    channel?.subscribe('typing', handleTyping)
 
     return () => {
       clearInterval(interval)
-      channel.unsubscribe('message', handleMessage)
-      channel.unsubscribe('typing', handleTyping)
+      channel?.unsubscribe('message', handleMessage)
+      channel?.unsubscribe('typing', handleTyping)
       clearTimeout(typingTimeout.current)
     }
   }, [userId, otherUser.id])
@@ -109,7 +109,7 @@ export function ChatClient({ otherUser, initialMessages, userId }: ChatClientPro
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewMessage(e.target.value)
     const ably = getAblyClient()
-    ably.channels.get(getChatChannel(userId, otherUser.id)).publish('typing', { userId })
+    ably?.channels.get(getChatChannel(userId, otherUser.id)).publish('typing', { userId })
   }
 
   const handleSendMessage = async () => {
@@ -145,17 +145,19 @@ export function ChatClient({ otherUser, initialMessages, userId }: ChatClientPro
       setMessages((prev) => prev.map(m => m.id === tempId ? { ...m, id: data.id } : m))
 
       const ably = getAblyClient()
-      const channelName = getChatChannel(userId, otherUser.id)
-      const channel = ably.channels.get(channelName)
-      channel.publish('message', {
-        id: data.id,
-        sender_id: userId,
-        receiver_id: otherUser.id,
-        group_id: null,
-        content: content.trim(),
-        read_at: null,
-        created_at: new Date().toISOString(),
-      })
+      if (ably) {
+        const channelName = getChatChannel(userId, otherUser.id)
+        const channel = ably.channels.get(channelName)
+        channel.publish('message', {
+          id: data.id,
+          sender_id: userId,
+          receiver_id: otherUser.id,
+          group_id: null,
+          content: content.trim(),
+          read_at: null,
+          created_at: new Date().toISOString(),
+        })
+      }
 
       router.refresh()
     }

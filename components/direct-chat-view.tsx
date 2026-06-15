@@ -67,8 +67,8 @@ export function DirectChatView({ otherUserId, otherUsername, userId, onBack }: D
 
     const ably = getAblyClient()
     const channelName = getChatChannel(userId, otherUserId)
-    const channel = ably.channels.get(channelName)
-    ablyChannelRef.current = channel
+    const channel = ably?.channels.get(channelName)
+    if (channel) ablyChannelRef.current = channel
 
     const handleMsg = (msg: any) => {
       const m = msg.data as Message
@@ -84,13 +84,13 @@ export function DirectChatView({ otherUserId, otherUsername, userId, onBack }: D
         typingTimeout.current = setTimeout(() => setIsTyping(false), 3000)
       }
     }
-    channel.subscribe('message', handleMsg)
-    channel.subscribe('typing', handleTyping)
+    channel?.subscribe('message', handleMsg)
+    channel?.subscribe('typing', handleTyping)
 
     return () => {
       clearInterval(interval)
-      channel.unsubscribe('message', handleMsg)
-      channel.unsubscribe('typing', handleTyping)
+      channel?.unsubscribe('message', handleMsg)
+      channel?.unsubscribe('typing', handleTyping)
       clearTimeout(typingTimeout.current)
     }
   }, [userId, otherUserId])
@@ -123,10 +123,12 @@ export function DirectChatView({ otherUserId, otherUsername, userId, onBack }: D
     } else {
       setMessages(prev => prev.map(m => m.id === tempId ? { ...m, id: data.id } : m))
       const ably = getAblyClient()
-      ably.channels.get(getChatChannel(userId, otherUserId)).publish('message', {
-        id: data.id, sender_id: userId, receiver_id: otherUserId, group_id: null,
-        content: content.trim(), read_at: null, created_at: new Date().toISOString(),
-      })
+      if (ably) {
+        ably.channels.get(getChatChannel(userId, otherUserId)).publish('message', {
+          id: data.id, sender_id: userId, receiver_id: otherUserId, group_id: null,
+          content: content.trim(), read_at: null, created_at: new Date().toISOString(),
+        })
+      }
     }
     setIsSending(false)
   }

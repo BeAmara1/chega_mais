@@ -2,10 +2,14 @@ import Ably from 'ably'
 
 let client: Ably.Realtime | null = null
 
-export function getAblyClient(): Ably.Realtime {
+export function getAblyClient(): Ably.Realtime | null {
+  if (!process.env.NEXT_PUBLIC_ABLY_API_KEY) {
+    console.warn('Ably API key not configured')
+    return null
+  }
   if (!client) {
     client = new Ably.Realtime({
-      key: process.env.NEXT_PUBLIC_ABLY_API_KEY!,
+      key: process.env.NEXT_PUBLIC_ABLY_API_KEY,
       autoConnect: true,
     })
   }
