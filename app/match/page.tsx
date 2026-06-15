@@ -28,6 +28,7 @@ export default async function MatchPage() {
       myName={profile.username}
       initialProfiles={allProfiles}
       initialEventProfiles={eventProfiles}
+      initialInteractedIds={interactedIds}
     />
   )
 }

@@ -24,6 +24,7 @@ export async function getAvailableProfiles(
   seenIds: string[] = []
 ): Promise<MatchProfile[]> {
   const excluded = [userId, ...interactedIds, ...seenIds]
+  const myEvents = await getMyEventIds(supabase, userId)
 
   const { data: profiles } = await supabase
     .from('profiles')
@@ -37,10 +38,12 @@ export async function getAvailableProfiles(
 
   return Promise.all(
     filtered.map(async (p) => {
-      const { count } = await supabase
+      let query = supabase
         .from('event_attendees')
         .select('*', { head: true, count: 'exact' })
         .eq('user_id', p.id)
+      if (myEvents.length > 0) query = query.in('event_id', myEvents)
+      const { count } = await query
       return { ...p, common_events: count ?? 0 }
     })
   )
@@ -76,10 +79,12 @@ export async function getAvailableProfilesAtEvents(
 
   return Promise.all(
     profiles.map(async (p) => {
-      const { count } = await supabase
+      let query = supabase
         .from('event_attendees')
         .select('*', { head: true, count: 'exact' })
         .eq('user_id', p.id)
+      if (myEvents.length > 0) query = query.in('event_id', myEvents)
+      const { count } = await query
       return { ...p, common_events: count ?? 0 }
     })
   )
@@ -131,6 +136,8 @@ export async function getUserMatches(
   supabase: SupabaseClient,
   userId: string
 ): Promise<(Match & { otherUser: { id: string; username: string; avatar_url: string | null }; common_events: number })[]> {
+  const myEvents = await getMyEventIds(supabase, userId)
+
   const { data: matches } = await supabase
     .from('matches')
     .select('*')
@@ -148,10 +155,12 @@ export async function getUserMatches(
         .eq('id', otherId)
         .single()
 
-      const { count } = await supabase
+      let query = supabase
         .from('event_attendees')
         .select('*', { head: true, count: 'exact' })
         .eq('user_id', otherId)
+      if (myEvents.length > 0) query = query.in('event_id', myEvents)
+      const { count } = await query
 
       return {
         ...m,

@@ -17,9 +17,10 @@ interface MatchClientProps {
   myName: string
   initialProfiles: MatchProfile[]
   initialEventProfiles: MatchProfile[]
+  initialInteractedIds: string[]
 }
 
-export function MatchClient({ userId, myAvatar, myName, initialProfiles, initialEventProfiles }: MatchClientProps) {
+export function MatchClient({ userId, myAvatar, myName, initialProfiles, initialEventProfiles, initialInteractedIds }: MatchClientProps) {
   const supabaseRef = useRef(createClient())
   const supabase = supabaseRef.current
 
@@ -37,6 +38,7 @@ export function MatchClient({ userId, myAvatar, myName, initialProfiles, initial
   const [modalOpen, setModalOpen] = useState(false)
 
   const allSeenIds = useRef(new Set<string>())
+  const interactedRef = useRef<string[]>(initialInteractedIds)
 
   useEffect(() => {
     initialProfiles.forEach(p => allSeenIds.current.add(p.id))
@@ -50,12 +52,13 @@ export function MatchClient({ userId, myAvatar, myName, initialProfiles, initial
     if (!supabase) return
     setLoading(true)
     const seen = Array.from(allSeenIds.current)
+    const interacted = interactedRef.current
     if (filter === 'all') {
-      const more = await getAvailableProfiles(supabase, userId, [], seen)
+      const more = await getAvailableProfiles(supabase, userId, interacted, seen)
       more.forEach(p => allSeenIds.current.add(p.id))
       setProfiles(prev => [...prev, ...more])
     } else {
-      const more = await getAvailableProfilesAtEvents(supabase, userId, [], seen)
+      const more = await getAvailableProfilesAtEvents(supabase, userId, interacted, seen)
       more.forEach(p => allSeenIds.current.add(p.id))
       setEventProfiles(prev => [...prev, ...more])
     }
@@ -77,6 +80,8 @@ export function MatchClient({ userId, myAvatar, myName, initialProfiles, initial
     } else {
       await handlePass(supabase, userId, currentProfile.id)
     }
+
+    interactedRef.current.push(currentProfile.id)
 
     const nextIndex = currentIndex + 1
     setCurrentIndex(nextIndex)

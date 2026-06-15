@@ -6,7 +6,7 @@ import '@fontsource/inter/700.css'
 import '@fontsource/gochi-hand'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
-import { GraffitiOverlay } from '@/components/graffiti-overlay'
+import GraffitiWrapper from '@/components/graffiti-wrapper'
 
 export const metadata: Metadata = {
   title: 'Chega+ | Descubra Eventos Incríveis',
@@ -50,7 +50,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <div className="relative">
             {children}
-            <GraffitiOverlay />
+            <GraffitiWrapper />
           </div>
         </ThemeProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
