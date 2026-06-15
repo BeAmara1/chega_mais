@@ -92,7 +92,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   return (
     <EventDetailClient
       event={eventWithDetails}
-      attendees={(attendees || []).map(a => a.profile).filter(Boolean) as { id: string; username: string; avatar_url: string | null }[]}
+      attendees={((attendees || []).map(a => a.profile).filter(Boolean) as unknown as { id: string; username: string; avatar_url: string | null }[])}
       comments={(comments || []).map(c => ({
         ...c,
         profile: c.profile as { id: string; username: string; avatar_url: string | null } | undefined

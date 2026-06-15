@@ -26,7 +26,7 @@ export function DirectChatView({ otherUserId, otherUsername, userId, onBack }: D
   const [isTyping, setIsTyping] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const lastPolledAt = useRef<string>(new Date().toISOString())
-  const typingTimeout = useRef<ReturnType<typeof setTimeout>>()
+  const typingTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const ablyChannelRef = useRef<any>(null)
 
   useEffect(() => {

@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import Cropper from 'react-easy-crop'
-import type { Point, Area } from 'react-easy-crop/types'
+import type { Point, Area } from 'react-easy-crop'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'

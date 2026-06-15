@@ -45,7 +45,7 @@ interface GroupEntry {
 interface ChatListClientProps {
   conversations: Conversation[]
   friends: { id: string; username: string; avatar_url: string | null }[]
-  groups: GroupEntry[]
+  initialGroups: GroupEntry[]
   userId: string
 }
 

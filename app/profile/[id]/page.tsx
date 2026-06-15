@@ -51,9 +51,9 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
     }
   }
 
-  const events = (attendance || [])
+  const events = ((attendance || [])
     .map(a => a.event)
-    .filter(Boolean) as { id: string; title: string; date: string; image_url: string | null; location: string | null }[]
+    .filter(Boolean)) as unknown as { id: string; title: string; date: string; image_url: string | null; location: string | null }[]
 
   return (
     <PublicProfileClient

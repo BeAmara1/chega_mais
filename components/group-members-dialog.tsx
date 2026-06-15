@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Shield, UserMinus, LogOut, Search, Plus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -125,7 +126,7 @@ export function GroupMembersDialog({
       onMembersChange([...members, data as unknown as ChatGroupMember])
       setFriends(friends.filter(f => f.id !== friendId))
     } else {
-      console.error('Erro ao adicionar membro:', error.message)
+      console.error('Erro ao adicionar membro:', error?.message)
     }
   }
 

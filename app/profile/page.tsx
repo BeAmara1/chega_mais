@@ -57,9 +57,9 @@ export default async function ProfilePage() {
     .select('*', { count: 'exact', head: true })
     .eq('user_id', user.id)
 
-  const events = (attendance || [])
+  const events = ((attendance || [])
     .map(a => a.event)
-    .filter(Boolean) as {
+    .filter(Boolean)) as unknown as {
       id: string
       title: string
       date: string

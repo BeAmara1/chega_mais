@@ -75,9 +75,9 @@ export default async function FeedPage() {
     is_attending: attendingIds.has(event.id),
     is_liked: likedIds.has(event.id),
     attendee_count: countMap.get(event.id) || 0,
-    friends_attending: (friendsMap.get(event.id) || [])
+    friends_attending: ((friendsMap.get(event.id) || [])
       .map(fa => fa.profile)
-      .filter(Boolean) as { id: string; username: string; avatar_url: string | null }[],
+      .filter(Boolean)) as unknown as { id: string; username: string; avatar_url: string | null }[],
   })) || []
 
   return <FeedClient initialEvents={eventsWithAttendees} userId={user.id} />

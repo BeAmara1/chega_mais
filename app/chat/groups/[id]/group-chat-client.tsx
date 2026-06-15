@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dialog'
 import { GroupSettingsView } from '@/components/group-settings-view'
 import { GroupMembersDialog } from '@/components/group-members-dialog'
-import type { ChatGroup, ChatGroupMember, GroupMessage } from '@/lib/types'
+import type { ChatGroup, ChatGroupMember, GroupMessage, Profile } from '@/lib/types'
 
 interface GroupChatClientProps {
   group: ChatGroup
@@ -116,7 +116,7 @@ export function GroupChatClient({ group, initialMessages, members: initialMember
       content,
       created_at: new Date().toISOString(),
       read_by: [userId],
-      sender: senderProfile ? { id: userId, username: senderProfile.username, avatar_url: senderProfile.avatar_url } : undefined,
+      sender: senderProfile ? senderProfile as Profile : undefined,
     }
 
     setMessages((prev) => [...prev, optimisticMessage])
@@ -145,7 +145,7 @@ export function GroupChatClient({ group, initialMessages, members: initialMember
         content: content.trim(),
         read_by: [userId],
         created_at: new Date().toISOString(),
-        sender: senderProfile ? { id: userId, username: senderProfile.username, avatar_url: senderProfile.avatar_url } : undefined,
+      sender: senderProfile ? { ...senderProfile } : undefined,
       })
     }
 
