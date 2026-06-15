@@ -31,13 +31,16 @@ export default function LoginPage() {
     })
 
     if (authError) {
-      setError('Email ou senha incorretos')
+      if (authError.message.includes('Email not confirmed')) {
+        setError('Confirme seu email antes de fazer login. Verifique sua caixa de entrada.')
+      } else {
+        setError('Email ou senha incorretos')
+      }
       setIsLoading(false)
       return
     }
 
-    router.push('/feed')
-    router.refresh()
+    setTimeout(() => { window.location.href = '/feed' }, 100)
   }
 
   const handleGoogleLogin = async () => {
